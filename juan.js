@@ -2,94 +2,128 @@ let inventario = [];
 let totalMedicamentos = 0;
 let totalVentas = 0;
 
-function registrarMedicamento(nombre, cantidad, precio) {
+function agregarMedicamento(nombre, cantidad, precio) {
     inventario[totalMedicamentos] = {
         nombre: nombre,
-        cantidad: cantidad,
-        precio: precio,
+        cantidad: parseInt(cantidad),
+        precio: parseFloat(precio),
         vendido: 0
     };
     totalMedicamentos++;
+
+    console.log("Medicamento regístrado correctamente");
+    mostrarMenu();
 }
 
 function consultarInventario() {
-    console.log("--------------------")
-    console.log("Inventario:");
+    console.log("\n INVENTARIO");
+    console.log("================================");
+
+    if (totalMedicamentos === 0) {
+        console.log("No hay productos registrados.");
+    }
+
     for (let i = 0; i < totalMedicamentos; i++) {
         console.log(
-            inventario[i].nombre +
-            " | Stock: " + inventario[i].cantidad +
-            " | Vendido: " + inventario[i].vendido +
-            " | Precio: $" + inventario[i].precio
+            `• ${inventario[i].nombre} | Stock: ${inventario[i].cantidad} | Precio: $${inventario[i].precio}`
         );
     }
-    console.log("--------------------");
+
+    mostrarMenu();
 }
 
 function venderMedicamento(nombre, cantidadVendida) {
     let encontrado = false;
+    let cant = parseInt(cantidadVendida);
 
     for (let i = 0; i < totalMedicamentos; i++) {
-        if (inventario[i].nombre === nombre) {
+        if (inventario[i].nombre.toLowerCase() === nombre.toLowerCase()) {
             encontrado = true;
 
-            if (inventario[i].cantidad >= cantidadVendida) {
-                inventario[i].cantidad = inventario[i].cantidad - cantidadVendida;
-                inventario[i].vendido = inventario[i].vendido + cantidadVendida;
-
-                let venta = cantidadVendida * inventario[i].precio;
-                totalVentas = totalVentas + venta;
+            if (inventario[i].cantidad >= cant) {
+                inventario[i].cantidad -= cant;
+                inventario[i].vendido += cant;
+                totalVentas += cant * inventario[i].precio;
 
                 console.log(
-                    "Venta realizada: " +
-                    cantidadVendida +
-                    " unidades de " +
-                    inventario[i].nombre
+                    `Venta realizada | Total: $${(cant * inventario[i].precio).toFixed(2)}`
                 );
             } else {
-                console.log("No hay unidades de " + inventario[i].nombre);
+                console.log("Venta cancelada: cantidad de producto insuficiente.");
             }
         }
     }
 
-    if (encontrado === false) {
-        console.log("Medicamento no encontrado");
+    if (!encontrado) {
+        console.log("Medicamento no encontrado en el inventario.");
     }
+
+    mostrarMenu();
 }
 
 function mostrarTotalVentas() {
-    console.log("RESUMEN DE VENTAS:");
-    console.log("--------------------");
+    console.log("\nTOTAL DE VENTA EN EL DÍA");
+    console.log("--------------------------------");
+    console.log(`Ingresos acumulados: $${totalVentas.toFixed(2)}`);
 
     for (let i = 0; i < totalMedicamentos; i++) {
-        let totalProducto = inventario[i].vendido * inventario[i].precio;
-
-        console.log(
-            inventario[i].nombre +
-            " | Unidades vendidas: " + inventario[i].vendido +
-            " | Total: $" + totalProducto
-        );
+        if (inventario[i].vendido > 0) {
+            console.log(
+                `→ ${inventario[i].nombre}: ${inventario[i].vendido} salidas registradas`
+            );
+        }
     }
 
-    console.log("--------------------");
-    console.log("TOTAL GENERAL DEL DÍA: $" + totalVentas);
+    mostrarMenu();
 }
 
+function mostrarMenu() {
+    console.log("\n---- PANEL PRINCIPAL ----");
+    console.log("1) Registrar medicamento");
+    console.log("2) Ver inventario");
+    console.log("3) Vender medicamento");
+    console.log("4) Total de ventas del día");
+    console.log("5) Cerrar sistema");
+    process.stdout.write("Ingrese opción: ");
+}
 
-// ===============================
-// Simulación del programa
-// ===============================
+process.stdin.on("data", (data) => {
+    let opcion = data.toString().trim();
 
-registrarMedicamento("Paracetamol", 20, 50);
-registrarMedicamento("Ibuprofeno", 15, 80);
-registrarMedicamento("Amoxicilina", 10, 120);
+    if (opcion === "1") {
+        process.stdout.write("Nombre: ");
+        process.stdin.once("data", (n) => {
+            process.stdout.write("Cantidad: ");
+            process.stdin.once("data", (c) => {
+                process.stdout.write("Precio: ");
+                process.stdin.once("data", (p) => {
+                    agregarMedicamento(
+                        n.toString().trim(),
+                        c.toString().trim(),
+                        p.toString().trim()
+                    );
+                });
+            });
+        });
+    } else if (opcion === "2") {
+        consultarInventario();
+    } else if (opcion === "3") {
+        process.stdout.write("Medicamento a vender: ");
+        process.stdin.once("data", (n) => {
+            process.stdout.write("Cantidad a vender: ");
+            process.stdin.once("data", (c) => {
+                venderMedicamento(
+                    n.toString().trim(),
+                    c.toString().trim()
+                );
+            });
+        });
+    } else if (opcion === "4") {
+        mostrarTotalVentas();
+    } else if (opcion === "5") {
+        console.log("Sesión finalizada. Sistema desconectado correctamente.");
+        process.exit();
+    }
+});
 
-consultarInventario();
-
-venderMedicamento("Paracetamol", 5);
-venderMedicamento("Ibuprofeno", 3);
-venderMedicamento("Paracetamol", 2);
-
-consultarInventario();
-
-mostrarTotalVentas();
+mostrarMenu();
