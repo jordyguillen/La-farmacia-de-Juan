@@ -123,6 +123,8 @@ process.stdin.on("data", (data) => {
     } else if (opcion === "5") {
         console.log("Sesión finalizada. Sistema desconectado correctamente.");
         process.exit();
+    } else {
+        console.log("ERROR, la opcion que selecciono no existe.")
     }
 });
 
